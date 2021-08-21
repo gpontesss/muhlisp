@@ -1,11 +1,12 @@
 CC := gcc
+CFLAGS := -std=c99 -Wall -ledit
 OUTDIR := out
 
 .PHONY: all
-all: $(OUTDIR)/hello_world
+all: $(OUTDIR)/repl
 
 $(OUTDIR)/%: %.c | $(OUTDIR)
-	$(CC) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 $(OUTDIR):
 	mkdir -p $@
