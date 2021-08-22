@@ -1,16 +1,16 @@
 CC := gcc
-CFLAGS := -std=c99 -Wall -ledit
+CFLAGS := -std=c99 -Wall -ledit -lm
+DEPS := mpc.c parsing.c
 OUTDIR := out
 
 .PHONY: all
-all: $(OUTDIR)/repl
+all: $(OUTDIR)/muhlisp
 
-$(OUTDIR)/%: %.c | $(OUTDIR)
+$(OUTDIR)/%: $(DEPS) %.c | $(OUTDIR)
 	$(CC) $(CFLAGS) $^ -o $@
 
 $(OUTDIR):
 	mkdir -p $@
-
 
 .PHONY: clean
 clean:
