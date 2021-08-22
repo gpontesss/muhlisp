@@ -24,7 +24,7 @@ mpc_err_t* muhlisp_init_parser(muhlisp_parser_t* parser) {
 
     return mpca_lang(MPCA_LANG_DEFAULT,
         " \
-            number: /-?[0-9]+/ ; \
+            number: /-?[0-9]+(\\.[0-9]+)?/ ; \
             operator: '+' | '-' | '*' | '/' ; \
             expr: <number> | '(' <operator> <expr>+ ')' ; \
             muhlisp: /^/ <expr> /$/ ; \
