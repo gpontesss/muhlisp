@@ -10,8 +10,8 @@ typedef struct {
     mpc_parser_t* MuhLisp;
 } muhlisp_parser_t;
 
-muhlisp_parser_t muhlisp_create_parser();
-void muhlisp_free_parser(muhlisp_parser_t parser);
+mpc_err_t* muhlisp_init_parser(muhlisp_parser_t*);
+void muhlisp_free_parser(muhlisp_parser_t*);
 
 int muhlisp_parse_input( \
         const muhlisp_parser_t* parser, \

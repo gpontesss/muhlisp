@@ -14,32 +14,30 @@
             | '(' <operator> <expr>+ ')' ;
 */
 
-muhlisp_parser_t muhlisp_create_parser() {
-    muhlisp_parser_t parser = {
+mpc_err_t* muhlisp_init_parser(muhlisp_parser_t* parser) {
+    *parser = (muhlisp_parser_t){
         .Number = mpc_new("number"),
         .Operator = mpc_new("operator"),
         .Expr = mpc_new("expr"),
         .MuhLisp = mpc_new("muhlisp"),
     };
 
-    mpca_lang(MPCA_LANG_DEFAULT,
+    return mpca_lang(MPCA_LANG_DEFAULT,
         " \
             number: /-?[0-9]+/ ; \
             operator: '+' | '-' | '*' | '/' ; \
             expr: <number> | '(' <operator> <expr>+ ')' ; \
             muhlisp: /^/ <expr> /$/ ; \
         ",
-        parser.Number, parser.Operator,
-        parser.Expr, parser.MuhLisp
+        parser->Number, parser->Operator,
+        parser->Expr, parser->MuhLisp
     );
-
-    return parser;
 }
 
-void muhlisp_free_parser(muhlisp_parser_t parser) {
+void muhlisp_free_parser(muhlisp_parser_t* parser) {
     mpc_cleanup(4, \
-            parser.Number, parser.Operator, \
-            parser.Expr, parser.MuhLisp);
+            parser->Number, parser->Operator, \
+            parser->Expr, parser->MuhLisp);
 }
 
 int muhlisp_parse_input( \

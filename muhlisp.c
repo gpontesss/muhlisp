@@ -11,7 +11,14 @@ int main(int argc, char** argv) {
     puts("muhlisp version 0.0.1");
     puts("press ctrl+c to quit");
 
-    muhlisp_parser_t parser = muhlisp_create_parser();
+    muhlisp_parser_t parser;
+    mpc_err_t* err = muhlisp_init_parser(&parser);
+
+    if(err) {
+        mpc_err_print(err);
+        muhlisp_free_parser(&parser);
+        exit(1);
+    }
 
     for(;;) {
         char* input = readline("muhlisp> ");
@@ -32,7 +39,7 @@ int main(int argc, char** argv) {
         free(input);
     }
 
-    muhlisp_free_parser(parser);
+    muhlisp_free_parser(&parser);
     puts("\nExiting muhlisp...");
 
     return 0;
