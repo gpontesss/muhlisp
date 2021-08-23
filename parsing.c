@@ -26,7 +26,7 @@ mpc_err_t* muhlisp_init_parser(muhlisp_parser_t* parser) {
         " \
             number: /-?[0-9]+(\\.[0-9]+)?/ ; \
             operator: '+' | '-' | '*' | '/' ; \
-            expr: <number> | '(' <operator> <expr>+ ')' ; \
+            expr: <number> | '(' <operator> <expr> <expr> ')' ; \
             muhlisp: /^/ <expr> /$/ ; \
         ",
         parser->Number, parser->Operator,
