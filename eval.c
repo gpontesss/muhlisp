@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "mpc.h"
 #include "eval.h"
@@ -9,7 +10,7 @@ int eval_ast(mpc_ast_t* ast, void* value) {
     if(strstr(ast->tag, "expr") != NULL) {
         return eval_expr(ast, value);
     // root expression
-    } else if(!strcmp(ast->tag, ">")) {
+    } else if(strcmp(ast->tag, ">") == 0) {
         // selects second child; it should be an expression.
         return eval_ast(ast->children[1], value);
     } else {
@@ -20,7 +21,7 @@ int eval_ast(mpc_ast_t* ast, void* value) {
 
 int eval_expr(mpc_ast_t* ast, void* value) {
     // should expression AST be validated?
-    if(!strcmp(ast->tag, "expr|number|regex")) {
+    if(strstr(ast->tag, "number") != NULL) {
         return eval_number(ast, value);
     }
 
@@ -46,6 +47,9 @@ int eval_expr(mpc_ast_t* ast, void* value) {
             break;
         case '/':
             *((double*)value) = left / right;
+            break;
+        case '^':
+            *((double*)value) = pow(left, right);
             break;
         default:
             // operation is not recognized
