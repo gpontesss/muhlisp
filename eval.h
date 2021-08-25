@@ -5,14 +5,14 @@
 
 
 enum {
-MUHLISP_VAL_ERR,
-MUHLISP_VAL_INT,
-MUHLISP_VAL_FLOAT,
+    MUHLISP_VAL_ERR,
+    MUHLISP_VAL_INT,
+    MUHLISP_VAL_FLOAT,
 };
 
 typedef struct {
-int type;
-void* pval;
+    int type;
+    void* pval;
 } muhlisp_val_t;
 
 char* muhlisp_val_str(muhlisp_val_t* val);

@@ -1,3 +1,5 @@
+#define _GNU_SOURCE  // Required for vasprintf.
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,19 +10,6 @@
 #include "mpc.h"
 #include "eval.h"
 
-// TODO: how to deal with it properly?
-#define PSPRINTF_STR_SIZE 4098
-
-static char* psprintf(const char* fmt, ...) {
-    char* errstr = (char*)malloc(sizeof(char)*PSPRINTF_STR_SIZE);
-
-    va_list args;
-    va_start(args, fmt);
-    vsprintf(errstr, fmt, args);
-    va_end(args);
-
-    return errstr;
-}
 
 static muhlisp_val_t muhlisp_val_double(double val) {
     double* pval = (double*)malloc(sizeof(double));
@@ -32,9 +21,12 @@ static muhlisp_val_t muhlisp_val_double(double val) {
 }
 
 static muhlisp_val_t muhlisp_val_errorf(char* fmt, ...) {
+    char* errstr;
     va_list args;
+
     va_start(args, fmt);
-    char* errstr = psprintf(fmt, args);
+    // TODO: handle errors
+    vasprintf(&errstr, fmt, args);
     va_end(args);
 
     return (muhlisp_val_t){
@@ -44,12 +36,13 @@ static muhlisp_val_t muhlisp_val_errorf(char* fmt, ...) {
 }
 
 char* muhlisp_val_str(muhlisp_val_t* val) {
+    char* str;
     switch(val->type) {
         case MUHLISP_VAL_ERR:
             return val->pval;
-            break;
         case MUHLISP_VAL_FLOAT:
-            return psprintf("%f", *((double*)val->pval));
+            asprintf(&str, "%f", *((double*)val->pval));
+            return str;
         default:
             return NULL;
     }
@@ -79,7 +72,7 @@ void eval_expr(mpc_ast_t *ast, muhlisp_val_t *val) {
         return eval_number(ast, val);
     }
 
-    mpc_ast_t **children = ast->children;
+    mpc_ast_t** children = ast->children;
     muhlisp_val_t left_val, right_val;
 
     eval_expr(children[2], &left_val);
