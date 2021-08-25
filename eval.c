@@ -93,8 +93,15 @@ void eval_expr(mpc_ast_t *ast, muhlisp_val_t *val) {
         *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
         break;
     case '/':
-        *pval = left / right;
-        *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+        if( right == 0 ) {
+            *val = (muhlisp_val_t){
+                .type = MUHLISP_VAL_ERR,
+                .pval = "Cannot divide by 0, you fool",
+            };
+        } else {
+            *pval = left / right;
+            *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+        }
         break;
     case '^':
         *pval = pow(left, right);
