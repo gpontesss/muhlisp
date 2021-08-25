@@ -90,6 +90,9 @@ void eval_expr(mpc_ast_t *ast, muhlisp_val_t *val) {
     double left  = *((double*)(left_val.pval));
     double right = *((double*)(right_val.pval));
 
+    muhlisp_val_free(&left_val);
+    muhlisp_val_free(&right_val);
+
     // operators only have one character
     char op = children[1]->contents[0];
 
