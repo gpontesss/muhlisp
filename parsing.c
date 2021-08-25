@@ -1,19 +1,6 @@
 #include "mpc.h"
 #include "parsing.h"
 
-/*
-    Polish expressions:
-    + 1 2 6
-    + 6 (* 2 9)
-    / (* 10 2) (+ 4 2)
-
-    Polish grammar:
-        number: /-?[0-9]+/ ;
-        operator: '+' | '-' | '*' | '/' ;
-        expr: <number> \
-            | '(' <operator> <expr>+ ')' ;
-*/
-
 mpc_err_t* muhlisp_init_parser(muhlisp_parser_t* parser) {
     *parser = (muhlisp_parser_t){
         .Number = mpc_new("number"),

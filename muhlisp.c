@@ -30,13 +30,16 @@ int main(int argc, char** argv) {
 
         mpc_result_t result;
         if(muhlisp_parse_input(&parser, input, &result)) {
-            double value;
+            muhlisp_val_t val;
+            eval_ast(result.output, &val);
 
-            if(!eval_ast(result.output, &value)) {
-                printf("%f\n", value);
+            char* str = muhlisp_value_str(&val);
+            if(str != NULL) {
+                puts(str);
             } else {
-                puts("Error evaluating expression");
+                puts("Can't evaluate value string.");
             }
+
             mpc_ast_delete(result.output);
         } else {
             mpc_err_print(result.error);
