@@ -43,7 +43,7 @@ static muhlisp_val_t muhlisp_val_errorf(char* fmt, ...) {
     };
 }
 
-char* muhlisp_value_str(muhlisp_val_t* val) {
+char* muhlisp_val_str(muhlisp_val_t* val) {
     switch(val->type) {
         case MUHLISP_VAL_ERR:
             return val->pval;
@@ -53,6 +53,12 @@ char* muhlisp_value_str(muhlisp_val_t* val) {
         default:
             return NULL;
     }
+}
+
+void muhlisp_val_free(muhlisp_val_t* val) {
+    // TODO: in some cases where pval points to static memory it may not
+    // work (?)
+    free(val->pval);
 }
 
 void eval_ast(mpc_ast_t *ast, muhlisp_val_t *val) {

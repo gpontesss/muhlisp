@@ -33,13 +33,14 @@ int main(int argc, char** argv) {
             muhlisp_val_t val;
             eval_ast(result.output, &val);
 
-            char* str = muhlisp_value_str(&val);
+            char* str = muhlisp_val_str(&val);
             if(str != NULL) {
                 puts(str);
             } else {
                 puts("Can't evaluate value string.");
             }
 
+            muhlisp_val_free(&val);
             mpc_ast_delete(result.output);
         } else {
             mpc_err_print(result.error);
