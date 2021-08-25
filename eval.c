@@ -11,7 +11,6 @@
 // TODO: how to deal with it properly?
 #define PSPRINTF_STR_SIZE 4098
 
-
 static char* psprintf(const char* fmt, ...) {
     char* errstr = (char*)malloc(sizeof(char)*PSPRINTF_STR_SIZE);
 
@@ -21,6 +20,27 @@ static char* psprintf(const char* fmt, ...) {
     va_end(args);
 
     return errstr;
+}
+
+static muhlisp_val_t muhlisp_val_double(double val) {
+    double* pval = (double*)malloc(sizeof(double));
+    *pval = val;
+    return (muhlisp_val_t){
+        .type = MUHLISP_VAL_FLOAT,
+        .pval = pval,
+    };
+}
+
+static muhlisp_val_t muhlisp_val_errorf(char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char* errstr = psprintf(fmt, args);
+    va_end(args);
+
+    return (muhlisp_val_t){
+        .type = MUHLISP_VAL_ERR,
+        .pval = errstr,
+    };
 }
 
 char* muhlisp_value_str(muhlisp_val_t* val) {
@@ -43,10 +63,7 @@ void eval_ast(mpc_ast_t *ast, muhlisp_val_t *val) {
         // selects second child; it should be an expression.
         return eval_ast(ast->children[1], val);
     } else {
-        *val = (muhlisp_val_t){
-            .type = MUHLISP_VAL_ERR,
-            .pval = psprintf("Cannot parse '%s' rule kind.", ast->tag),
-        };
+        *val = muhlisp_val_errorf("Cannot parse '%s' rule kind", ast->tag);
     }
 }
 
@@ -74,56 +91,39 @@ void eval_expr(mpc_ast_t *ast, muhlisp_val_t *val) {
     double left  = *((double*)(left_val.pval));
     double right = *((double*)(right_val.pval));
 
-    // TODO: check values
     // operators only have one character
     char op = children[1]->contents[0];
 
-    double* pval = (double*)malloc(sizeof(double));
+    // TODO: maybe some routing to basic operator predicates to each types?
+    // don't know enough of lisp yet to know what to do.
     switch (op) {
     case '+':
-        *pval = left + right;
-        *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+        *val = muhlisp_val_double(left + right);
         break;
     case '-':
-        *pval = left - right;
-        *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+        *val = muhlisp_val_double(left - right);
         break;
     case '*':
-        *pval = left * right;
-        *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+        *val = muhlisp_val_double(left * right);
         break;
     case '/':
         if( right == 0 ) {
-            *val = (muhlisp_val_t){
-                .type = MUHLISP_VAL_ERR,
-                .pval = "Cannot divide by 0, you fool",
-            };
+            *val = muhlisp_val_errorf("Cannot divide by 0, you fool");
         } else {
-            *pval = left / right;
-            *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+            *val = muhlisp_val_double(left / right);
         }
         break;
     case '^':
-        *pval = pow(left, right);
-        *val = (muhlisp_val_t){ .type = MUHLISP_VAL_FLOAT, .pval = pval };
+            *val = muhlisp_val_double(pow(left, right));
         break;
     default:
         // operation is not recognized
-        *val = (muhlisp_val_t){
-            .type = MUHLISP_VAL_ERR,
-            .pval = psprintf("Operation '%c' cannot be evaluated.", op),
-        };
+        *val = muhlisp_val_errorf("Operation '%c' cannot be evaluated.", op);
     }
 }
 
 void eval_number(mpc_ast_t *ast, muhlisp_val_t *val) {
     // TODO: only evaluating decimal numbers for now.
-    double* pval = (double*)malloc(sizeof(double));
     // TODO: bad atof does not detect errors :(
-    *pval = atof(ast->contents);
-
-    *val = (muhlisp_val_t){
-        .type = MUHLISP_VAL_FLOAT,
-        .pval = pval,
-    };
+    *val = muhlisp_val_double(atof(ast->contents));
 }
