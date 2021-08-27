@@ -11,11 +11,18 @@
 #include "eval.h"
 
 
+static muhlisp_val_t* muhlisp_val_ptr(muhlisp_val_t val) {
+    // TODO: proper error checking/signaling
+    muhlisp_val_t* pval = (muhlisp_val_t*)malloc(sizeof(muhlisp_val_t));
+    *pval = val;
+    return pval;
+}
+
 static muhlisp_val_t muhlisp_val_double(double val) {
     double* pval = (double*)malloc(sizeof(double));
     *pval = val;
     return (muhlisp_val_t){
-        .type = MUHLISP_VAL_FLOAT,
+        .type = MUHLISP_VAL_NUMBER,
         .pval = pval,
     };
 }
@@ -25,6 +32,8 @@ static muhlisp_val_t muhlisp_val_errorf(char* fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
+    // strcpy is not needed, for vasprintf creates a new string. thus it also
+    // solves the problem of trying to free static memory.
     // TODO: handle errors
     vasprintf(&errstr, fmt, args);
     va_end(args);
@@ -35,97 +44,128 @@ static muhlisp_val_t muhlisp_val_errorf(char* fmt, ...) {
     };
 }
 
+static muhlisp_val_t muhlisp_val_sexpr(int count) {
+    // TODO: handle errors
+    muhlisp_val_t** sexpr_pvals = malloc(count*sizeof(muhlisp_val_t*));
+    muhlisp_sexpr_list_t* sexpr_list = malloc(sizeof(muhlisp_sexpr_list_t));
+
+    *sexpr_list = (muhlisp_sexpr_list_t){
+        .count = count,
+        .pvals = sexpr_pvals,
+    };
+
+    return (muhlisp_val_t){
+        .type = MUHLISP_VAL_SEXPR,
+        .pval = sexpr_list,
+    };
+}
+
+static muhlisp_val_t muhlisp_val_symbol(const char* symbol) {
+    size_t len = strlen(symbol) + 1;
+    // TODO: handle errors.
+    char* symbolcpy = malloc(len*(sizeof(char)));
+    strncpy(symbolcpy, symbol, len);
+
+    return (muhlisp_val_t){
+        .type = MUHLISP_VAL_SYM,
+        .pval = symbolcpy,
+    };
+}
+
 char* muhlisp_val_str(muhlisp_val_t* val) {
-    char* str;
-    switch(val->type) {
-        case MUHLISP_VAL_ERR:
-            return val->pval;
-        case MUHLISP_VAL_FLOAT:
-            asprintf(&str, "%f", *((double*)val->pval));
-            return str;
-        default:
-            return NULL;
+    int type = val->type;
+
+    if(type == MUHLISP_VAL_ERR || type == MUHLISP_VAL_SYM) {
+        return val->pval;
+    } else if(type == MUHLISP_VAL_NUMBER) {
+        char* str;
+        asprintf(&str, "%f", *((double*)val->pval));
+        return str;
+    } else if(type == MUHLISP_VAL_SEXPR) {
+        muhlisp_sexpr_list_t* sexpr_list = val->pval;
+        char* str = "(";
+        for(int i = 0; i < sexpr_list->count; i++) {
+            asprintf(&str, "%s %s", str, muhlisp_val_str(sexpr_list->pvals[i]));
+        }
+        asprintf(&str, "%s )", str);
+        return str;
+    } else {
+        return NULL;
     }
 }
 
-void muhlisp_val_free(muhlisp_val_t* val) {
-    // TODO: in some cases where pval points to static memory it may not
-    // work (?)
-    free(val->pval);
+void muhlisp_val_free(muhlisp_val_t* pval) {
+    if(pval->type == MUHLISP_VAL_SEXPR) {
+        muhlisp_sexpr_list_t* sexpr = pval->pval;
+        for(int i = 0; i < sexpr->count; i++) {
+            muhlisp_val_free(sexpr->pvals[i]);
+        }
+        free(sexpr->pvals);
+    }
+    // maybe some problems may occur if pval->pval points to static memory. try
+    // to avoid that.
+    free(pval->pval);
+    // TODO: should try to free pval itself? there are cases where it is a
+    // struct in the stack.
 }
 
 void eval_ast(mpc_ast_t *ast, muhlisp_val_t *val) {
-    if (strstr(ast->tag, "expr") != NULL) {
-        return eval_expr(ast, val);
     // root expression
-    } else if(strcmp(ast->tag, ">") == 0) {
+    if(strcmp(ast->tag, ">") == 0) {
         // selects second child; it should be an expression.
-        return eval_ast(ast->children[1], val);
+        eval_ast(ast->children[1], val);
+    // sexpr match has to come before expr's; if not, bugs'll hunt you.
+    } else if(strstr(ast->tag, "sexpr") != NULL) {
+        eval_sexpr(ast, val);
+    } else if(strstr(ast->tag, "expr") != NULL) {
+        eval_expr(ast, val);
     } else {
         *val = muhlisp_val_errorf("Cannot parse '%s' rule kind", ast->tag);
     }
 }
 
+void eval_sexpr(mpc_ast_t* ast, muhlisp_val_t* val) {
+    // sexpr = '(' <expr>* ')'
+   int children_num = ast->children_num;
+   mpc_ast_t** children = ast->children;
+
+   muhlisp_val_t sexpr = muhlisp_val_sexpr(children_num-2);
+   muhlisp_sexpr_list_t* sexpr_list = (muhlisp_sexpr_list_t*)sexpr.pval;
+
+   for(int i = 0; i < children_num-2; i++) {
+        mpc_ast_t* child = children[i+1];
+        muhlisp_val_t child_val;
+        // TODO: how to deal with errors mid-child-evaluation?
+        eval_expr(child, &child_val);
+        sexpr_list->pvals[i] = muhlisp_val_ptr(child_val);
+   }
+
+   *val = sexpr;
+}
+
 void eval_expr(mpc_ast_t *ast, muhlisp_val_t *val) {
     // TODO: should expression AST be validated?
-    if (strstr(ast->tag, "number") != NULL) {
-        return eval_number(ast, val);
-    }
-
-    mpc_ast_t** children = ast->children;
-    muhlisp_val_t left_val, right_val;
-
-    eval_expr(children[2], &left_val);
-    if(left_val.type == MUHLISP_VAL_ERR) {
-        *val = left_val;
-        return;
-    }
-    eval_expr(children[3], &right_val);
-    if(right_val.type == MUHLISP_VAL_ERR) {
-        *val = right_val;
-        return;
-    }
-
-    // TODO: only evaluating numbers for now
-    double left  = *((double*)(left_val.pval));
-    double right = *((double*)(right_val.pval));
-
-    muhlisp_val_free(&left_val);
-    muhlisp_val_free(&right_val);
-
-    // operators only have one character
-    char op = children[1]->contents[0];
-
-    // TODO: maybe some routing to basic operator predicates to each types?
-    // don't know enough of lisp yet to know what to do.
-    switch (op) {
-    case '+':
-        *val = muhlisp_val_double(left + right);
-        break;
-    case '-':
-        *val = muhlisp_val_double(left - right);
-        break;
-    case '*':
-        *val = muhlisp_val_double(left * right);
-        break;
-    case '/':
-        if( right == 0 ) {
-            *val = muhlisp_val_errorf("Cannot divide by 0, you fool");
-        } else {
-            *val = muhlisp_val_double(left / right);
-        }
-        break;
-    case '^':
-            *val = muhlisp_val_double(pow(left, right));
-        break;
-    default:
-        // operation is not recognized
-        *val = muhlisp_val_errorf("Operation '%c' cannot be evaluated.", op);
+    if(strstr(ast->tag, "sexpr") != NULL) {
+        eval_sexpr(ast, val);
+    } else if(strstr(ast->tag, "symbol") != NULL) {
+        eval_symbol(ast, val);
+    } else if(strstr(ast->tag, "number") != NULL) {
+        eval_number(ast, val);
+    } else {
+        *val = muhlisp_val_errorf(
+            "Can't eval expression '%s' (unhandled tag '%s')",
+            ast->contents,
+            ast->tag
+        );
     }
 }
 
+void eval_symbol(mpc_ast_t* ast, muhlisp_val_t* val) {
+    // symbol = '+' | '-' | '*' | '/' | '^'
+    *val = muhlisp_val_symbol(ast->contents);
+}
+
 void eval_number(mpc_ast_t *ast, muhlisp_val_t *val) {
-    // TODO: only evaluating decimal numbers for now.
     // TODO: bad atof does not detect errors :(
     *val = muhlisp_val_double(atof(ast->contents));
 }

@@ -4,26 +4,28 @@
 mpc_err_t* muhlisp_init_parser(muhlisp_parser_t* parser) {
     *parser = (muhlisp_parser_t){
         .Number = mpc_new("number"),
-        .Operator = mpc_new("operator"),
+        .Symbol = mpc_new("symbol"),
         .Expr = mpc_new("expr"),
+        .SExpr = mpc_new("sexpr"),
         .MuhLisp = mpc_new("muhlisp"),
     };
 
     return mpca_lang(MPCA_LANG_DEFAULT,
         " \
             number: /-?[0-9]+(\\.[0-9]+)?/ ; \
-            operator: '+' | '-' | '*' | '/' | '^' ; \
-            expr: <number> | '(' <operator> <expr> <expr> ')' ; \
-            muhlisp: /^/ <expr> /$/ ; \
+            symbol: '+' | '-' | '*' | '/' | '^' ; \
+            sexpr: '(' <expr>* ')' ; \
+            expr: <number> | <symbol> | <sexpr> ; \
+            muhlisp: /^/ <sexpr> /$/ ; \
         ",
-        parser->Number, parser->Operator,
-        parser->Expr, parser->MuhLisp
+        parser->Number, parser->Symbol, parser->SExpr,
+        parser->Expr,   parser->MuhLisp
     );
 }
 
 void muhlisp_free_parser(muhlisp_parser_t* parser) {
-    mpc_cleanup(4, \
-            parser->Number, parser->Operator, \
+    mpc_cleanup(5, \
+            parser->Number, parser->Symbol, parser->SExpr, \
             parser->Expr, parser->MuhLisp);
 }
 

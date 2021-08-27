@@ -10,17 +10,17 @@
 
 
 int main(int argc, char** argv) {
-    puts("muhlisp version 0.0.1");
-    puts("press ctrl+c to quit");
-
     muhlisp_parser_t parser;
     mpc_err_t* err = muhlisp_init_parser(&parser);
 
-    if(err) {
+    if(err != NULL) {
         mpc_err_print(err);
         muhlisp_free_parser(&parser);
         exit(1);
     }
+
+    puts("muhlisp version 0.0.1");
+    puts("press ctrl+c to quit");
 
     for(;;) {
         char* input = readline("muhlisp> ");
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
                 puts("Can't evaluate value string.");
             }
 
-            muhlisp_val_free(&val);
+            // muhlisp_val_free(&val);
             mpc_ast_delete(result.output);
         } else {
             mpc_err_print(result.error);
