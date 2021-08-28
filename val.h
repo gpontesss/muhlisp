@@ -1,8 +1,5 @@
-#ifndef EVAL_H_DECLARED
-#define EVAL_H_DECLARED
-
-#include "mpc.h"
-
+#ifndef MUHLISP_VAL_H_
+#define MUHLISP_VAL_H_
 
 enum {
     MUHLISP_VAL_ERR,
@@ -21,13 +18,14 @@ typedef struct {
     muhlisp_val_t** pvals;
 } muhlisp_sexpr_list_t;
 
+muhlisp_val_t muhlisp_val_errorf(char* fmt, ...);
+muhlisp_val_t muhlisp_val_double(double val);
+muhlisp_val_t muhlisp_val_sexpr(int count);
+muhlisp_val_t muhlisp_val_symbol(const char* symbol);
+
+muhlisp_val_t* muhlisp_val_ptr(muhlisp_val_t val);
+
 char* muhlisp_val_str(muhlisp_val_t* val);
 void muhlisp_val_free(muhlisp_val_t* val);
-
-void eval_ast(mpc_ast_t* ast, muhlisp_val_t* val);
-void eval_expr(mpc_ast_t* ast, muhlisp_val_t* val);
-void eval_sexpr(mpc_ast_t* ast, muhlisp_val_t* val);
-void eval_number(mpc_ast_t* ast, muhlisp_val_t* val);
-void eval_symbol(mpc_ast_t* ast, muhlisp_val_t* val);
 
 #endif

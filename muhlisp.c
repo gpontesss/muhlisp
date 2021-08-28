@@ -3,10 +3,8 @@
 #include <editline/readline.h>
 #include <string.h>
 
-#include "mpc.h"
-#include "parsing.h"
-
-#include "eval.h"
+#include "./mpc.h"
+#include "./parsing.h"
 
 
 int main(int argc, char** argv) {
@@ -31,7 +29,7 @@ int main(int argc, char** argv) {
         mpc_result_t result;
         if(muhlisp_parse_input(&parser, input, &result)) {
             muhlisp_val_t val;
-            eval_ast(result.output, &val);
+            muhlisp_read_val(result.output, &val);
 
             char* str = muhlisp_val_str(&val);
             if(str != NULL) {

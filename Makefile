@@ -1,6 +1,6 @@
 CC := gcc
 CFLAGS := -std=c99 -Wall -ledit -lm
-DEPS := mpc.c parsing.c eval.c
+DEPS := mpc.c parsing.c val.c
 OUTDIR := out
 
 .PHONY: all

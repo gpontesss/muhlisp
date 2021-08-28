@@ -1,7 +1,8 @@
 #ifndef PARSING_H_INCLUDED
 #define PARSING_H_INCLUDED
 
-#include "mpc.h"
+#include "./mpc.h"
+#include "./val.h"
 
 typedef struct {
     mpc_parser_t* Number;
@@ -14,8 +15,13 @@ typedef struct {
 mpc_err_t* muhlisp_init_parser(muhlisp_parser_t*);
 void muhlisp_free_parser(muhlisp_parser_t*);
 
-int muhlisp_parse_input( \
-        const muhlisp_parser_t* parser, \
-        const char* input, mpc_result_t* result);
+int muhlisp_parse_input(const muhlisp_parser_t* parser, const char* input,
+        mpc_result_t* result);
+
+void muhlisp_read_val(mpc_ast_t* ast, muhlisp_val_t* val);
+void muhlisp_read_val_expr(mpc_ast_t* ast, muhlisp_val_t* val);
+void muhlisp_read_val_sexpr(mpc_ast_t* ast, muhlisp_val_t* val);
+void muhlisp_read_val_number(mpc_ast_t* ast, muhlisp_val_t* val);
+void muhlisp_read_val_symbol(mpc_ast_t* ast, muhlisp_val_t* val);
 
 #endif
