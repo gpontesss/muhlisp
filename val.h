@@ -1,15 +1,17 @@
 #ifndef MUHLISP_VAL_H_
 #define MUHLISP_VAL_H_
 
-enum {
+enum muhlisp_val_type {
     MUHLISP_VAL_ERR,
     MUHLISP_VAL_NUMBER,
     MUHLISP_VAL_SYM,
     MUHLISP_VAL_SEXPR,
 };
 
+typedef enum muhlisp_val_type muhlisp_val_type_t;
+
 typedef struct {
-    int type;
+    muhlisp_val_type_t type;
     void* pval;
 } muhlisp_val_t;
 

@@ -61,7 +61,6 @@ void muhlisp_read_val_sexpr(mpc_ast_t* ast, muhlisp_val_t* val) {
    for(int i = 0; i < children_num-2; i++) {
         mpc_ast_t* child = children[i+1];
         muhlisp_val_t child_val;
-        // TODO: how to deal with errors mid-child-evaluation?
         muhlisp_read_val_expr(child, &child_val);
         sexpr_list->pvals[i] = muhlisp_val_ptr(child_val);
    }
