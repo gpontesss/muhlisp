@@ -38,7 +38,8 @@ int main(int argc, char** argv) {
                 puts("Can't evaluate value string.");
             }
 
-            // muhlisp_val_free(&val);
+            free(str);
+            muhlisp_val_free(&val);
             mpc_ast_delete(result.output);
         } else {
             mpc_err_print(result.error);
