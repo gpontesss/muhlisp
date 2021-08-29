@@ -87,7 +87,11 @@ char* muhlisp_val_str(muhlisp_val_t* val) {
     int type = val->type;
 
     if(type == MUHLISP_VAL_ERR || type == MUHLISP_VAL_SYM) {
-        return val->pval;
+        // copy has to be made, to avoid double free's (string returned should
+        // be "standalone").
+        char* str;
+        asprintf(&str, "%s", (char*)(val->pval));
+        return str;
     } else if(type == MUHLISP_VAL_NUMBER) {
         char* str;
         asprintf(&str, "%f", *((double*)val->pval));
