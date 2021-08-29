@@ -30,10 +30,19 @@ void muhlisp_free_parser(muhlisp_parser_t* parser) {
             parser->Expr, parser->MuhLisp);
 }
 
-int muhlisp_parse_input(const muhlisp_parser_t* parser, const char* input,
-        mpc_result_t* result) {
-    return mpc_parse("<stdin>", input, parser->MuhLisp, result);
+void muhlisp_parser_read_val(const muhlisp_parser_t* parser, const char* input,
+        muhlisp_val_t* val) {
+
+    mpc_result_t result;
+    if(!mpc_parse("<stdin>", input, parser->MuhLisp, &result)) {
+        *val = muhlisp_val_errorf(mpc_err_string(result.error));
+        mpc_err_delete(result.error);
+    } else {
+        muhlisp_read_val(result.output, val);
+        mpc_ast_delete(result.output);
+    }
 }
+
 
 void muhlisp_read_val(mpc_ast_t *ast, muhlisp_val_t *val) {
     // root expression

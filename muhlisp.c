@@ -26,25 +26,17 @@ int main(int argc, char** argv) {
             break;
         }
 
-        mpc_result_t result;
-        if(muhlisp_parse_input(&parser, input, &result)) {
-            muhlisp_val_t val;
-            muhlisp_read_val(result.output, &val);
+        muhlisp_val_t val;
+        muhlisp_parser_read_val(&parser, input, &val);
 
-            char* str = muhlisp_val_str(&val);
-            if(str != NULL) {
-                puts(str);
-            } else {
-                puts("Can't evaluate value string.");
-            }
-
+        char* str = muhlisp_val_str(&val);
+        if(str != NULL) {
+            puts(str);
             free(str);
-            muhlisp_val_free(&val);
-            mpc_ast_delete(result.output);
         } else {
-            mpc_err_print(result.error);
-            mpc_err_delete(result.error);
+            puts("Can't evaluate value string.");
         }
+        muhlisp_val_free(&val);
 
         add_history(input);
         free(input);

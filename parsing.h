@@ -15,8 +15,8 @@ typedef struct {
 mpc_err_t* muhlisp_init_parser(muhlisp_parser_t*);
 void muhlisp_free_parser(muhlisp_parser_t*);
 
-int muhlisp_parse_input(const muhlisp_parser_t* parser, const char* input,
-        mpc_result_t* result);
+void muhlisp_parser_read_val(const muhlisp_parser_t* parser, const char* input,
+        muhlisp_val_t* val);
 
 void muhlisp_read_val(mpc_ast_t* ast, muhlisp_val_t* val);
 void muhlisp_read_val_expr(mpc_ast_t* ast, muhlisp_val_t* val);
